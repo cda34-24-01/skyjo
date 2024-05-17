@@ -1,0 +1,19 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+html, body{
+    background-color: gray;
+    height: 100%;
+}
+.cell{
+    background-color: blue;
+    width: 5vw;
+    height: 10vh;
+}
+.grid{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+}
