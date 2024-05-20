@@ -1,0 +1,33 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+.player_container {
+    width: 96px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+.card {
+    width: 60px;
+    height: 60px;
+    text-align: center;
+}
+
+.player {
+    width: 60px;
+    height: 30px;
+}
+
+.ready {
+    width: 180px;
+    height: 30px;
+}
+
+.container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
