@@ -38,6 +38,13 @@ let deletedArray = [];
 
 Array.prototype.random = function () {
     let currentNumber = this[Math.floor(Math.random() * this.length)];
+    deletedArray.push(currentNumber);
+
+    const index = randomNumber.indexOf(currentNumber); // Recherche l'index de la première occurrence de "1"
+    if (index !== -1) {
+        randomNumber.splice(index, 1); // Supprime l'élément à l'index spécifié
+    }
+
     return currentNumber;
 };
 let columns = 4;
@@ -62,7 +69,7 @@ function createPlayerContainer() {
             const card = document.createElement("div");
             card.classList.add("card", "is-align-content-center");
             card.textContent = randomNumber.random(); //  attribution d'un nombre random ( a modifier en utilisant une fonction qui regroupe chaque carte)
-            deletedArray += randomNumber.random();
+            /* deletedArray += randomNumber.random(); */
             column.appendChild(card);
         }
 
@@ -71,6 +78,10 @@ function createPlayerContainer() {
 
     main.appendChild(playerContainer);
     console.log(deletedArray);
+    console.log(randomNumber);
 }
 
 createPlayerContainer();
+
+
+
