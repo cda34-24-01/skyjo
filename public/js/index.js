@@ -205,8 +205,7 @@ socket.on('play', (ennemyPlayer) => {
   if (ennemyPlayer.socketId !== player.socketId && !ennemyPlayer.turn) {
       const playedCell = document.getElementById(`${ennemyPlayer.playedCell}`);
 
-      playedCell.classList.add('text-danger');
-      playedCell.innerHTML = 'O';
+      playedCell.style.display = "none";
 
       if (ennemyPlayer.win) {
         SetTurnMessage('alert-info', 'alert-danger', `C'est perdu ! ${ennemyPlayer.username} a gagné !`);
