@@ -18,8 +18,9 @@
             <h1 class="title is-1">Skyjo en ligne</h1>
             <h3 class="subtitle is-3">Jouons a Skyjo</h3>
         </div>
-        <div class="div">
-            <form class="box" method="POST" id="form">
+        <div class="alert d-none" role="alert" id="turn-message"></div>
+        <div class="div" id="user-card">
+            <form class="box" id="form" method="POST" onsubmit="event.preventDefault();playerData();">
                 <div class="field">
                     <label class="label">Pseudo en jeu</label>
                     <div class="control">
@@ -55,24 +56,18 @@
                     </div>
                 </div>
             </div>
+            <div class="text-center d-none mt-2" id="restart-area">
+                <input class="btn btn-primary" id="restart" type="button" value="Rejouer">
+            </div>
 
-            <form class="box">
-                <div class="field">
-                    <label class="label">Pseudo en jeu</label>
-                    <div class="control">
-                        <input class="input" type="text" placeholder="Saisir votre pseudo" />
-                        <div class="field">
-                            <label class="label">ID de la partie</label>
-                            <div class="control">
-                                <input class="input" type="text" placeholder="ID d'une partie existente" />
-
-
-                                <button class="button is-primary">Rejoindre une partie</button>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card d-none" id="game-card">
+                <div class="card-header">
+                    Skyjo
                 </div>
-            </form>
+                <div class="card-body mx-auto container-players-cards">
+        
+                </div>
+            </div>
 
         </div>
 
