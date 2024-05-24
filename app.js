@@ -26,9 +26,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'templates/base.html'));
 });
 
-app.get('/games/skyjo', (req, res) => {
+/* app.get('/games/skyjo', (req, res) => {
     res.sendFile(path.join(__dirname, 'templates/games/skyjo.html'));
-});
+}); */
 
 http.listen(port, () => {
     console.log(`Server is running on port ${port}`);
@@ -57,6 +57,7 @@ io.on("connection", (socket) => {
         return;
       }
 
+      player.roomId = room.id;
       room.players.push(player);
       console.log(`[join room] - Room joined: ${room.id} - ${player.username}`);
     }

@@ -103,6 +103,7 @@ const roomsCard = document.getElementById("rooms-card");
 const roomsList = document.getElementById("rooms-list");
 
 const turnMsg = document.getElementById("turn-message");
+const linkToShare = document.getElementById("link-to-share");
 
 let ennemyUsername = "";
 
@@ -154,9 +155,14 @@ function playerData(roomId = null) {
 document.addEventListener("click", function (e) {
   const cell = e.target.closest(".cell"); // Or any other selector.
   console.log(player.turn);
+  if (cell) {
+    const playedCellName = cell.getAttribute("data-username");
+    if(playedCellName !== player.username) {
+      return;
+    }
+    if (cell.innerText === "" && player.turn) { 
     const playedCell = cell.getAttribute("id");
     console.log(playedCell);
-    if (cell.innerText === "" && player.turn) {
       player.playedCell = playedCell;
       cell.style.display = "none"; 
       /* player.win = calculateWin(playedCell); */
@@ -164,6 +170,12 @@ document.addEventListener("click", function (e) {
 
       socket.emit("play", player);
     }
+  }
+});
+
+socket.on("join room", (roomId) => {
+  player.roomId = roomId;
+  linkToShare.innerHTML = `<a href="${window.location.href}?${player.roomId}" target="_blank">${window.location.href}?room=${player.roomId}</a>`;
 });
 
 
@@ -187,39 +199,44 @@ socket.on("start game", (players) => {
   startGame(players);
 });
 
-socket.on("play", (ennemyPlayer) => {
+
+socket.on('play', (ennemyPlayer) => {
+  console.log("play", ennemyPlayer);
   if (ennemyPlayer.socketId !== player.socketId && !ennemyPlayer.turn) {
-    const playedCell = document.getElementById(ennemyPlayer.playedCell);
-    playedCell.classList.add("text-danger");
-    playedCell.innerHtml = "O";
-    if (ennemyPlayer.win) {
-      updateTurnMessage(
-        "alert-info",
-        "alert-danger",
-        `Vous avez perdu ! <b>${ennemyPlayer.username}</b> a gagné !`
-      );
-      return;
-    }
-    if (calculateEquality()) {
-      updateTurnMessage("alert-info", "alert-warning", "Egalité !");
-      return;
-    }
+      const playedCell = document.getElementById(`${ennemyPlayer.playedCell}`);
 
-    updateTurnMessage("alert-danger", "alert-success", "C'est à vous de jouer");
-    player.turn = true;
+      playedCell.classList.add('text-danger');
+      playedCell.innerHTML = 'O';
+
+      if (ennemyPlayer.win) {
+        SetTurnMessage('alert-info', 'alert-danger', `C'est perdu ! ${ennemyPlayer.username} a gagné !`);
+          calculateWin(ennemyPlayer.playedCell, 'O');
+          //showRestartArea();
+          return;
+      }
+
+      if (calculateEquality()) {
+        SetTurnMessage('alert-info', 'alert-warning', "C'est une egalité !");
+          return;
+      }
+
+      SetTurnMessage('alert-info', 'alert-success', "C'est ton tour de jouer");
+      player.turn = true;
   } else {
-    if (player.win) {
-      $("#turn-message").addClass("alert-success").html = "Vous avez gagné !";
-      return;
-    }
+      if (player.win) {
+          $("#turn-message").addClass('alert-success').html("Félicitations, tu as gagné la partie !");
+          //showRestartArea();
+          return;
+      }
 
-    if (calculateEquality()) {
-      updateTurnMessage("alert-info", "alert-warning", "Egalité !");
-      return;
-    }
+      if (calculateEquality()) {
+        SetTurnMessage('alert-info', 'alert-warning', "C'est une egalité !");
+          //showRestartArea();
+          return;
+      }
 
-    updateTurnMessage("alert-success", "alert-info", `C'est à ${ennemyUsername} de jouer`);
-    player.turn = false;
+      SetTurnMessage('alert-success', 'alert-info', `C'est au tour de ${ennemyUsername} de jouer`)
+      player.turn = false;
   }
 });
 
@@ -264,8 +281,10 @@ function createPlayerTable(player) {
     for (let columnIndex = 0; columnIndex < 4; columnIndex++) {
       let playerCell = document.createElement("td");
       playerCell.classList.add("cell");
-      playerCell.innerHTML = `<img src="${player.deck[count].image}" alt="${player.deck[count].value}" data-value="${player.deck[count].value}">`;
+      playerCell.innerHTML = `<img src="${player.deck[count].image}" alt="${player.deck[count].value}">`;
       playerCell.setAttribute("id", `Cell ${rowIndex + 1}, Column ${columnIndex + 1}`);
+      playerCell.setAttribute("data-username", player.username);
+      playerCell.setAttribute("data-value", player.deck[count].value);
 
       playerRow.appendChild(playerCell);
       count++;
