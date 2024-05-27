@@ -68,7 +68,9 @@ body {
   margin : "5px";
 }
 
-.player-card {
+.player-card,
+#pioche,
+#defausse {
   width: 5rem;
   height: 8rem;
 }
@@ -77,8 +79,15 @@ body {
   filter: grayscale(100%);
 }
 
+#pioche,
+#defausse {
+  cursor: pointer;
+}
+
 @media screen and (max-width: 1000px){
-  .player-card {
+  .player-card,
+  #pioche,
+  #defausse {
     width: 5rem;
     height: 6rem;
   }

@@ -9,6 +9,7 @@ const player = {
   deck: [],
   turn: false,
   score: 0,
+  lastRound: false,
   win: false,
 };
 
@@ -164,7 +165,7 @@ function playerData(roomId = null) {
 
 
 document.addEventListener("click", function (e) {
-  
+
   const cell = e.target.closest(".cell img"); // Or any other selector.
   if (cell) {
     const playedCellName = cell.getAttribute("data-username");
@@ -218,6 +219,15 @@ document.addEventListener("click", function (e) {
 
         //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
         addFilterGray(cell, player.username);
+
+
+        // Vérifie si la partie est terminée
+        if (checkEndGame(player)) {
+          player.lastRound = true;
+          /* SetTurnMessage('alert-info', 'alert-warning', "La partie est terminée !");
+          return; */
+        }
+
 
         player.turn = false;
 
@@ -314,7 +324,11 @@ socket.on('play', (enemyPlayer) => {
       return;
     }
 
-    SetTurnMessage('alert-info', 'alert-success', "C'est à ton tour de jouer !");
+    if (enemyPlayer.lastRound == true) {
+      SetTurnMessage('alert-info', 'alert-warning', "C'est à vous, DERNIER TOUR !");
+    } else {
+      SetTurnMessage('alert-info', 'alert-success', "C'est à ton tour de jouer !");
+    }
     player.turn = true;
   } else {
     if (player.win) {
@@ -449,6 +463,24 @@ function SetTurnMessage(classToRemove, classToAdd, html) {
 
 function calculateWin(player) {
 
+}
+
+function checkEndGame(thisPlayer) {
+  let countEndGame = 0;
+  countEndGame = 0;
+  const cells = document.querySelectorAll(".cell img");
+
+  cells.forEach((cell) => {
+    if (cell.getAttribute("src") !== "/images/verso.png" && cell.getAttribute('id').split(',')[2] === thisPlayer.username) {
+      countEndGame++;
+    }
+  });
+  console.log("Compeur fin de partie : " + countEndGame)
+  if (countEndGame == 12) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function calculateEquality() {
