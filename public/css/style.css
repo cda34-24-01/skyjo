@@ -55,15 +55,31 @@ body {
   gap: 2rem;
 }
 
-.player-card {
+.player-cards {
   padding: 1rem!important;
 }
 
 .player_table_username,
-.ennemy_table_username {
+.enemy_table_username {
   color: "white";
   text-align: "center";
   padding:"10px";
   border-radius: "5px";
   margin : "5px";
+}
+
+.player-card {
+  width: 5rem;
+  height: 8rem;
+}
+
+.filter-grayscale {
+  filter: grayscale(100%);
+}
+
+@media screen and (max-width: 1000px){
+  .player-card {
+    width: 5rem;
+    height: 6rem;
+  }
 }

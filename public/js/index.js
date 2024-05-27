@@ -8,8 +8,17 @@ const player = {
   color: "",
   deck: [],
   turn: false,
+  score: 0,
   win: false,
 };
+
+
+/*   const cards = Array.from({ length: 12 }, () => ({
+    image: '/images/1.png',
+    value: 1,
+    number: 10,
+  })); */
+
 
 const cards = [
   {
@@ -89,6 +98,7 @@ const cards = [
   },
 ];
 
+
 const socket = io();
 
 const usernameInput = document.getElementById("username");
@@ -105,7 +115,7 @@ const roomsList = document.getElementById("rooms-list");
 const turnMsg = document.getElementById("turn-message");
 const linkToShare = document.getElementById("link-to-share");
 
-let ennemyUsername = "";
+let enemyUsername = "";
 
 socket.emit("get rooms");
 socket.on("list rooms", (rooms) => {
@@ -143,6 +153,7 @@ function playerData(roomId = null) {
   player.socketId = socket.id;
   player.deck = initPlayerDeck(roomId);
   player.color = getRandomColor(roomId);
+  player.score = 0;
 
   userCard.hidden = true;
   waitingArea.classList.remove("d-none");
@@ -153,91 +164,208 @@ function playerData(roomId = null) {
 
 
 document.addEventListener("click", function (e) {
-  const cell = e.target.closest(".cell"); // Or any other selector.
-  console.log(player.turn);
+  
+  const cell = e.target.closest(".cell img"); // Or any other selector.
   if (cell) {
     const playedCellName = cell.getAttribute("data-username");
-    if(playedCellName !== player.username) {
+    if (playedCellName !== player.username) {
       return;
     }
-    if (cell.innerText === "" && player.turn) { 
-    const playedCell = cell.getAttribute("id");
-    console.log(playedCell);
-      player.playedCell = playedCell;
-      cell.style.display = "none"; 
-      /* player.win = calculateWin(playedCell); */
-      player.turn = false;
+    if (cell.getAttribute("src") === "/images/verso.png" && player.turn) {
+      if (cell.innerText === "" && player.turn) {
+        const playedCell = cell.getAttribute("id");
 
-      socket.emit("play", player);
+        player.playedCell = playedCell;
+        if (cell.getAttribute("id") === `Cell1,Column1,${player.username}`) {
+          cell.src = `${player.deck[0].image}`;
+          player.score += player.deck[0].value;
+        } else if (cell.getAttribute("id") === `Cell2,Column1,${player.username}`) {
+          cell.src = `${player.deck[4].image}`;
+          player.score += player.deck[4].value;
+        } else if (cell.getAttribute("id") === `Cell3,Column1,${player.username}`) {
+          cell.src = `${player.deck[8].image}`;
+          player.score += player.deck[8].value;
+        } else if (cell.getAttribute("id") === `Cell1,Column2,${player.username}`) {
+          cell.src = `${player.deck[1].image}`;
+          player.score += player.deck[1].value;
+        } else if (cell.getAttribute("id") === `Cell2,Column2,${player.username}`) {
+          cell.src = `${player.deck[5].image}`;
+          player.score += player.deck[5].value;
+        } else if (cell.getAttribute("id") === `Cell3,Column2,${player.username}`) {
+          cell.src = `${player.deck[9].image}`;
+          player.score += player.deck[9].value;
+        } else if (cell.getAttribute("id") === `Cell1,Column3,${player.username}`) {
+          cell.src = `${player.deck[2].image}`;
+          player.score += player.deck[2].value;
+        } else if (cell.getAttribute("id") === `Cell2,Column3,${player.username}`) {
+          cell.src = `${player.deck[6].image}`;
+          player.score += player.deck[6].value;
+        } else if (cell.getAttribute("id") === `Cell3,Column3,${player.username}`) {
+          cell.src = `${player.deck[10].image}`;
+          player.score += player.deck[10].value;
+        } else if (cell.getAttribute("id") === `Cell1,Column4,${player.username}`) {
+          cell.src = `${player.deck[3].image}`;
+          player.score += player.deck[3].value;
+        } else if (cell.getAttribute("id") === `Cell2,Column4,${player.username}`) {
+          cell.src = `${player.deck[7].image}`;
+          player.score += player.deck[7].value;
+        } else if (cell.getAttribute("id") === `Cell3,Column4,${player.username}`) {
+          cell.src = `${player.deck[11].image}`;
+          player.score += player.deck[11].value;
+        }
+        /* cell.style.display = "none";  */
+        /* player.win = calculateWin(playedCell); */
+
+        //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
+        addFilterGray(cell, player.username);
+
+        player.turn = false;
+
+        console.log(player.score)
+
+        socket.emit("play", player);
+      }
     }
+
   }
 });
+
+function extraireNumeroImage(srcImage) {
+  const regex = /\/images\/(\d+)\.png/; // Expression régulière pour extraire le chiffre
+  const resultat = srcImage.match(regex);
+
+  if (resultat) {
+    return resultat[1]; // Le numéro est capturé dans le premier groupe de capture
+  } else {
+    return null; // L'URL ne correspond pas au format attendu
+  }
+}
 
 socket.on("join room", (roomId) => {
   player.roomId = roomId;
   linkToShare.innerHTML = `<a href="${window.location.href}?${player.roomId}" target="_blank">${window.location.href}?room=${player.roomId}</a>`;
 });
 
-
-/* $(document).ready(function () {
-  $(".cell").on("click", function (e) {
-    console.log(player.turn);
-    const playedCell = this.getAttribute("id");
-    console.log(playedCell);
-    if (this.innerText === "" && player.turn) {
-      player.playedCell = playedCell;
-      this.innerText = "test";
-      player.win = calculateWin(playedCell);
-      player.turn = false;
-
-      socket.emit("play", player);
-    }
-  });
-}); */
-
 socket.on("start game", (players) => {
   startGame(players);
 });
 
 
-socket.on('play', (ennemyPlayer) => {
-  console.log("play", ennemyPlayer);
-  if (ennemyPlayer.socketId !== player.socketId && !ennemyPlayer.turn) {
-      const playedCell = document.getElementById(`${ennemyPlayer.playedCell}`);
+socket.on('play', (enemyPlayer) => {
+  /* console.log("play", enemyPlayer); */
+  if (enemyPlayer.socketId !== player.socketId && !enemyPlayer.turn) {
 
-      playedCell.style.display = "none";
+    let playedCellId = enemyPlayer.playedCell;
+    let enemyUsername = enemyPlayer.username;
+    let imageElement = document.getElementById(`${playedCellId}`);
 
-      if (ennemyPlayer.win) {
-        SetTurnMessage('alert-info', 'alert-danger', `C'est perdu ! ${ennemyPlayer.username} a gagné !`);
-          calculateWin(ennemyPlayer.playedCell, 'O');
-          //showRestartArea();
-          return;
+    if (imageElement) {
+      if (imageElement.getAttribute("id") === `Cell1,Column1,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[0].image}`;
+        enemyPlayer.score += enemyPlayer.deck[0].value;
+      } else if (imageElement.getAttribute("id") === `Cell2,Column1,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[4].image}`;
+        enemyPlayer.score += enemyPlayer.deck[4].value;
+      } else if (imageElement.getAttribute("id") === `Cell3,Column1,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[8].image}`;
+        enemyPlayer.score += enemyPlayer.deck[8].value;
+      } else if (imageElement.getAttribute("id") === `Cell1,Column2,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[1].image}`;
+        enemyPlayer.score += enemyPlayer.deck[1].value;
+      } else if (imageElement.getAttribute("id") === `Cell2,Column2,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[5].image}`;
+        enemyPlayer.score += enemyPlayer.deck[5].value;
+      } else if (imageElement.getAttribute("id") === `Cell3,Column2,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[9].image}`;
+        enemyPlayer.score += enemyPlayer.deck[9].value;
+      } else if (imageElement.getAttribute("id") === `Cell1,Column3,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[2].image}`;
+        enemyPlayer.score += enemyPlayer.deck[2].value;
+      } else if (imageElement.getAttribute("id") === `Cell2,Column3,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[6].image}`;
+        enemyPlayer.score += enemyPlayer.deck[6].value;
+      } else if (imageElement.getAttribute("id") === `Cell3,Column3,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[10].image}`;
+        enemyPlayer.score += enemyPlayer.deck[10].value;
+      } else if (imageElement.getAttribute("id") === `Cell1,Column4,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[3].image}`;
+        enemyPlayer.score += enemyPlayer.deck[3].value;
+      } else if (imageElement.getAttribute("id") === `Cell2,Column4,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[7].image}`;
+        enemyPlayer.score += enemyPlayer.deck[7].value;
+      } else if (imageElement.getAttribute("id") === `Cell3,Column4,${enemyUsername}`) {
+        imageElement.src = `${enemyPlayer.deck[11].image}`;
+        enemyPlayer.score += enemyPlayer.deck[11].value;
       }
+    }
 
-      if (calculateEquality()) {
-        SetTurnMessage('alert-info', 'alert-warning', "C'est une egalité !");
-          return;
-      }
+    //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
+    addFilterGray(imageElement, enemyUsername);
 
-      SetTurnMessage('alert-info', 'alert-success', "C'est ton tour de jouer");
-      player.turn = true;
+    if (enemyPlayer.win) {
+      SetTurnMessage('alert-info', 'alert-danger', `C'est perdu ! ${enemyPlayer.username} a gagné !`);
+      calculateWin(enemyPlayer.playedCell, 'O');
+      //showRestartArea();
+      return;
+    }
+
+    if (calculateEquality()) {
+      SetTurnMessage('alert-info', 'alert-warning', "C'est une egalité !");
+      return;
+    }
+
+    SetTurnMessage('alert-info', 'alert-success', "C'est à ton tour de jouer !");
+    player.turn = true;
   } else {
-      if (player.win) {
-          $("#turn-message").addClass('alert-success').html("Félicitations, tu as gagné la partie !");
-          //showRestartArea();
-          return;
-      }
+    if (player.win) {
+      $("#turn-message").addClass('alert-success').html("Félicitations, tu as gagné la partie !");
+      //showRestartArea();
+      return;
+    }
 
-      if (calculateEquality()) {
-        SetTurnMessage('alert-info', 'alert-warning', "C'est une egalité !");
-          //showRestartArea();
-          return;
-      }
+    if (calculateEquality()) {
+      SetTurnMessage('alert-info', 'alert-warning', "C'est une egalité !");
+      //showRestartArea();
+      return;
+    }
 
-      SetTurnMessage('alert-success', 'alert-info', `C'est au tour de ${ennemyUsername} de jouer`)
-      player.turn = false;
+    SetTurnMessage('alert-success', 'alert-info', `C'est au tour de ${enemyUsername} de jouer`)
+    player.turn = false;
   }
 });
+
+function addFilterGray(image, playername) {
+  if (image.src != "/images/verso.png") {
+    const numero = extraireNumeroImage(image.getAttribute("src"));
+    let column = image.getAttribute("id").split(",")[1];
+    if (numero != null) {
+      //Cherche dans toute la colonne si le numéro est présent dans les 3 cellules
+      let number = 0;
+      const column = image.getAttribute("id").split(",")[1];
+
+      for (let i = 1; i <= 3; i++) {
+        const cellId = `Cell${i},${column},${playername}`;
+        const cellElement = document.getElementById(cellId);
+        const cellImage = cellElement.getAttribute("src");
+        const cellNumber = extraireNumeroImage(cellImage);
+
+        if (cellNumber === numero) {
+          number++;
+        }
+      }
+
+      if (number === 3) {
+        let cell1 = document.getElementById(`Cell1,${column},${playername}`);
+        let cell2 = document.getElementById(`Cell2,${column},${playername}`);
+        let cell3 = document.getElementById(`Cell3,${column},${playername}`);
+
+        cell1.classList.add("filter-grayscale");
+        cell2.classList.add("filter-grayscale");
+        cell3.classList.add("filter-grayscale");
+      }
+    }
+  }
+}
 
 function startGame(players) {
   console.log(players);
@@ -246,8 +374,8 @@ function startGame(players) {
   gameCard.classList.remove("d-none");
   turnMsg.classList.remove("d-none");
 
-  const ennemyPlayer = players.find((p) => p.socketId !== player.socketId);
-  ennemyUsername = ennemyPlayer.username;
+  const enemyPlayer = players.find((p) => p.socketId !== player.socketId);
+  enemyUsername = enemyPlayer.username;
 
   if (player.host && player.turn) {
     SetTurnMessage("alert-info", "alert-success", "C'est à vous de jouer");
@@ -255,7 +383,7 @@ function startGame(players) {
     SetTurnMessage(
       "alert-success",
       "alert-info",
-      `C'est à ${ennemyUsername} de jouer`
+      `C'est à ${enemyUsername} de jouer`
     );
   }
 
@@ -280,10 +408,7 @@ function createPlayerTable(player) {
     for (let columnIndex = 0; columnIndex < 4; columnIndex++) {
       let playerCell = document.createElement("td");
       playerCell.classList.add("cell");
-      playerCell.innerHTML = `<img src="${player.deck[count].image}" alt="${player.deck[count].value}">`;
-      playerCell.setAttribute("id", `Cell ${rowIndex + 1}, Column ${columnIndex + 1}`);
-      playerCell.setAttribute("data-username", player.username);
-      playerCell.setAttribute("data-value", player.deck[count].value);
+      playerCell.innerHTML = '<img src="/images/verso.png" alt="Verso" class="rounded player-card" id="' + `Cell${rowIndex + 1},Column${columnIndex + 1},${player.username}` + '" data-username="' + player.username + '">';
 
       playerRow.appendChild(playerCell);
       count++;
@@ -295,7 +420,7 @@ function createPlayerTable(player) {
   // Add player information to the table header (if desired)
   let containerPlayerCards = document.querySelector(".container-players-cards");
   let divPlayerCard = document.createElement("div");
-  divPlayerCard.classList.add("player-card");
+  divPlayerCard.classList.add("player-cards");
   let playerTableHeader = document.createElement("thead");
   let playerTableHeaderRow = document.createElement("tr");
   let playerTableHeaderCell = document.createElement("th");
@@ -320,6 +445,10 @@ function SetTurnMessage(classToRemove, classToAdd, html) {
   turnMsg.classList.remove(classToRemove);
   turnMsg.classList.add(classToAdd);
   turnMsg.innerText = html;
+}
+
+function calculateWin(player) {
+
 }
 
 function calculateEquality() {
@@ -387,7 +516,6 @@ let trashCards = []; // Initialize as an empty array
 let roomCards = {}; // Objet pour stocker les cartes par salle
 function getRandomCard(roomId) {
   roomCards[roomId] = [...cards]; // Copier les cartes dans le tableau de la salle
-
 
   let tmpCards = [...roomCards[roomId]]; // Créer une copie du tableau des cartes de la salle
 
