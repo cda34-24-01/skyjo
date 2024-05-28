@@ -26,9 +26,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'templates/base.html'));
 });
 
-/* app.get('/games/skyjo', (req, res) => {
-    res.sendFile(path.join(__dirname, 'templates/games/skyjo.html'));
-}); */
 
 http.listen(port, () => {
     console.log(`Server is running on port ${port}`);
@@ -77,6 +74,10 @@ io.on("connection", (socket) => {
 
   socket.on('play', (player) => {
     io.to(player.roomId).emit('play', player);
+  });
+
+  socket.on('choose', (player) => {
+    io.to(player.roomId).emit('choose', player);
   });
 
   socket.on("disconnect", () => {

@@ -71,8 +71,10 @@ body {
 .player-card,
 #pioche,
 #defausse {
-  width: 5rem;
-  height: 8rem;
+  min-width: 5rem;
+  min-height: 8rem;
+  max-width: 5rem;
+  max-height: 8rem;
 }
 
 .filter-grayscale {
@@ -84,11 +86,18 @@ body {
   cursor: pointer;
 }
 
+.footer {
+  height: 1rem;
+}
+
+
 @media screen and (max-width: 1000px){
   .player-card,
   #pioche,
   #defausse {
-    width: 5rem;
-    height: 6rem;
+    min-width: 5rem;
+    min-height: 6rem;
+    max-width: 5rem;
+    max-height: 6rem;
   }
 }

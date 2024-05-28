@@ -7,7 +7,8 @@ const player = {
   socketId: "",
   color: "",
   deck: [],
-  turn: false,
+  turn: true,
+  chooseCard: 0,
   score: 0,
   lastRound: false,
   win: false,
@@ -126,8 +127,11 @@ socket.on("list rooms", (rooms) => {
     rooms.forEach((room) => {
       if (room.players.length !== 2) {
         html += `<form method="POST" id="form2" onsubmit="event.preventDefault();playerData('${room.id}');">
-            <li class="list-group-item d-flex justify-content-between">
-                <p class="p-0 m-0 flex-grow-1 fw-bold">Salon de ${room.players[0].username} - ${room.id}</p>
+            <li class="list-group-item d-flex justify-content-between bg-dark mb-3 rounded">
+            <div class="d-flex">
+                <p class="p-0 m-0 flex-grow-1 fw-bold text-white">Salon de ${room.players[0].username} - ${room.id}</p>
+                <p class="p-0 m-0 ms-5 flex-grow-1 fw-bold text-white">${room.players.length}/8</p>
+                </div>
                 <button class="btn btn-sm btn-success join-room" type="submit" data-room="${room.id}">Rejoindre</button>
             </li>
             </form>`;
@@ -169,53 +173,30 @@ document.addEventListener("click", function (e) {
   const cell = e.target.closest(".cell img"); // Or any other selector.
   if (cell) {
     const playedCellName = cell.getAttribute("data-username");
+    const playedCell = cell.getAttribute("id");
+    if (player.chooseCard < 2) {
+      if (cell.getAttribute("src") === "/images/verso.png") {
+        player.chooseCard++;
+        player.turn = true;
+        player.playedCell = playedCell;
+        returnCard(cell, player);
+        socket.emit("choose", player);
+      }
+      return;
+    }
     if (playedCellName !== player.username) {
       return;
     }
     if (cell.getAttribute("src") === "/images/verso.png" && player.turn) {
       if (cell.innerText === "" && player.turn) {
-        const playedCell = cell.getAttribute("id");
 
         player.playedCell = playedCell;
-        if (cell.getAttribute("id") === `Cell1,Column1,${player.username}`) {
-          cell.src = `${player.deck[0].image}`;
-          player.score += player.deck[0].value;
-        } else if (cell.getAttribute("id") === `Cell2,Column1,${player.username}`) {
-          cell.src = `${player.deck[4].image}`;
-          player.score += player.deck[4].value;
-        } else if (cell.getAttribute("id") === `Cell3,Column1,${player.username}`) {
-          cell.src = `${player.deck[8].image}`;
-          player.score += player.deck[8].value;
-        } else if (cell.getAttribute("id") === `Cell1,Column2,${player.username}`) {
-          cell.src = `${player.deck[1].image}`;
-          player.score += player.deck[1].value;
-        } else if (cell.getAttribute("id") === `Cell2,Column2,${player.username}`) {
-          cell.src = `${player.deck[5].image}`;
-          player.score += player.deck[5].value;
-        } else if (cell.getAttribute("id") === `Cell3,Column2,${player.username}`) {
-          cell.src = `${player.deck[9].image}`;
-          player.score += player.deck[9].value;
-        } else if (cell.getAttribute("id") === `Cell1,Column3,${player.username}`) {
-          cell.src = `${player.deck[2].image}`;
-          player.score += player.deck[2].value;
-        } else if (cell.getAttribute("id") === `Cell2,Column3,${player.username}`) {
-          cell.src = `${player.deck[6].image}`;
-          player.score += player.deck[6].value;
-        } else if (cell.getAttribute("id") === `Cell3,Column3,${player.username}`) {
-          cell.src = `${player.deck[10].image}`;
-          player.score += player.deck[10].value;
-        } else if (cell.getAttribute("id") === `Cell1,Column4,${player.username}`) {
-          cell.src = `${player.deck[3].image}`;
-          player.score += player.deck[3].value;
-        } else if (cell.getAttribute("id") === `Cell2,Column4,${player.username}`) {
-          cell.src = `${player.deck[7].image}`;
-          player.score += player.deck[7].value;
-        } else if (cell.getAttribute("id") === `Cell3,Column4,${player.username}`) {
-          cell.src = `${player.deck[11].image}`;
-          player.score += player.deck[11].value;
-        }
-        /* cell.style.display = "none";  */
+
+        //Syncronisation des cartes
+        returnCard(cell, player);
+
         /* player.win = calculateWin(playedCell); */
+
 
         //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
         addFilterGray(cell, player.username);
@@ -260,53 +241,88 @@ socket.on("start game", (players) => {
   startGame(players);
 });
 
+socket.on("choose", (enemyPlayer) => {
+  console.log("choose", enemyPlayer);
+  let playedCellId = enemyPlayer.playedCell;
+  let enemyUsername = enemyPlayer.username;
+  let imageElement = document.getElementById(`${playedCellId}`);
+
+  if (imageElement) {
+    returnCard(imageElement, enemyPlayer);
+  }
+
+  if (player.chooseCard < 2 || enemyPlayer.chooseCard < 2) {
+    SetTurnMessage("alert-info", "alert-success", "Veuillez-choisir 2 cartes, puis patientez...");
+  } else {
+    if (player.host && player.turn) {
+    //if (player.score > enemyPlayer.score) {
+      SetTurnMessage("alert-info", "alert-success", "C'est à vous de jouer");
+    } else {
+      SetTurnMessage(
+        "alert-success",
+        "alert-info",
+        `C'est à ${enemyUsername} de jouer`
+      );
+    }
+  }
+});
+
+function returnCard(cell, player) {
+  if (cell.getAttribute("id") === `Cell1,Column1,${player.username}`) {
+    cell.src = `${player.deck[0].image}`;
+    player.score += player.deck[0].value;
+  } else if (cell.getAttribute("id") === `Cell2,Column1,${player.username}`) {
+    cell.src = `${player.deck[4].image}`;
+    player.score += player.deck[4].value;
+  } else if (cell.getAttribute("id") === `Cell3,Column1,${player.username}`) {
+    cell.src = `${player.deck[8].image}`;
+    player.score += player.deck[8].value;
+  } else if (cell.getAttribute("id") === `Cell1,Column2,${player.username}`) {
+    cell.src = `${player.deck[1].image}`;
+    player.score += player.deck[1].value;
+  } else if (cell.getAttribute("id") === `Cell2,Column2,${player.username}`) {
+    cell.src = `${player.deck[5].image}`;
+    player.score += player.deck[5].value;
+  } else if (cell.getAttribute("id") === `Cell3,Column2,${player.username}`) {
+    cell.src = `${player.deck[9].image}`;
+    player.score += player.deck[9].value;
+  } else if (cell.getAttribute("id") === `Cell1,Column3,${player.username}`) {
+    cell.src = `${player.deck[2].image}`;
+    player.score += player.deck[2].value;
+  } else if (cell.getAttribute("id") === `Cell2,Column3,${player.username}`) {
+    cell.src = `${player.deck[6].image}`;
+    player.score += player.deck[6].value;
+  } else if (cell.getAttribute("id") === `Cell3,Column3,${player.username}`) {
+    cell.src = `${player.deck[10].image}`;
+    player.score += player.deck[10].value;
+  } else if (cell.getAttribute("id") === `Cell1,Column4,${player.username}`) {
+    cell.src = `${player.deck[3].image}`;
+    player.score += player.deck[3].value;
+  } else if (cell.getAttribute("id") === `Cell2,Column4,${player.username}`) {
+    cell.src = `${player.deck[7].image}`;
+    player.score += player.deck[7].value;
+  } else if (cell.getAttribute("id") === `Cell3,Column4,${player.username}`) {
+    cell.src = `${player.deck[11].image}`;
+    player.score += player.deck[11].value;
+  }
+}
 
 socket.on('play', (enemyPlayer) => {
   /* console.log("play", enemyPlayer); */
   if (enemyPlayer.socketId !== player.socketId && !enemyPlayer.turn) {
-
+    
     let playedCellId = enemyPlayer.playedCell;
     let enemyUsername = enemyPlayer.username;
     let imageElement = document.getElementById(`${playedCellId}`);
-
+    
+    if (enemyPlayer.chooseCard < 1) {
+      SetTurnMessage('alert-info', 'alert-success', `C'est à ${enemyUsername} de choisir 2 cartes, puis patientez...`);
+      return;
+    }
+    
     if (imageElement) {
-      if (imageElement.getAttribute("id") === `Cell1,Column1,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[0].image}`;
-        enemyPlayer.score += enemyPlayer.deck[0].value;
-      } else if (imageElement.getAttribute("id") === `Cell2,Column1,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[4].image}`;
-        enemyPlayer.score += enemyPlayer.deck[4].value;
-      } else if (imageElement.getAttribute("id") === `Cell3,Column1,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[8].image}`;
-        enemyPlayer.score += enemyPlayer.deck[8].value;
-      } else if (imageElement.getAttribute("id") === `Cell1,Column2,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[1].image}`;
-        enemyPlayer.score += enemyPlayer.deck[1].value;
-      } else if (imageElement.getAttribute("id") === `Cell2,Column2,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[5].image}`;
-        enemyPlayer.score += enemyPlayer.deck[5].value;
-      } else if (imageElement.getAttribute("id") === `Cell3,Column2,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[9].image}`;
-        enemyPlayer.score += enemyPlayer.deck[9].value;
-      } else if (imageElement.getAttribute("id") === `Cell1,Column3,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[2].image}`;
-        enemyPlayer.score += enemyPlayer.deck[2].value;
-      } else if (imageElement.getAttribute("id") === `Cell2,Column3,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[6].image}`;
-        enemyPlayer.score += enemyPlayer.deck[6].value;
-      } else if (imageElement.getAttribute("id") === `Cell3,Column3,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[10].image}`;
-        enemyPlayer.score += enemyPlayer.deck[10].value;
-      } else if (imageElement.getAttribute("id") === `Cell1,Column4,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[3].image}`;
-        enemyPlayer.score += enemyPlayer.deck[3].value;
-      } else if (imageElement.getAttribute("id") === `Cell2,Column4,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[7].image}`;
-        enemyPlayer.score += enemyPlayer.deck[7].value;
-      } else if (imageElement.getAttribute("id") === `Cell3,Column4,${enemyUsername}`) {
-        imageElement.src = `${enemyPlayer.deck[11].image}`;
-        enemyPlayer.score += enemyPlayer.deck[11].value;
-      }
+      //Syncronisation des cartes
+      returnCard(imageElement, enemyPlayer);
     }
 
     //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
@@ -323,6 +339,8 @@ socket.on('play', (enemyPlayer) => {
       SetTurnMessage('alert-info', 'alert-warning', "C'est une egalité !");
       return;
     }
+
+
 
     if (enemyPlayer.lastRound == true) {
       SetTurnMessage('alert-info', 'alert-warning', "C'est à vous, DERNIER TOUR !");
@@ -391,16 +409,7 @@ function startGame(players) {
   const enemyPlayer = players.find((p) => p.socketId !== player.socketId);
   enemyUsername = enemyPlayer.username;
 
-  if (player.host && player.turn) {
-    SetTurnMessage("alert-info", "alert-success", "C'est à vous de jouer");
-  } else {
-    SetTurnMessage(
-      "alert-success",
-      "alert-info",
-      `C'est à ${enemyUsername} de jouer`
-    );
-  }
-
+  SetTurnMessage("alert-info", "alert-success", "Veuillez-choisir 2 cartes, puis patientez...");
 
   players.forEach((p) => {
     createPlayerTable(p);

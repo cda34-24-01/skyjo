@@ -20,9 +20,9 @@
         </div>
         <div class="alert d-none" role="alert" id="turn-message"></div>
         <div class="div" id="user-card">
-            <form class="box" id="form" method="POST" onsubmit="event.preventDefault();playerData();">
+            <form class="box bg-dark" id="form" method="POST" onsubmit="event.preventDefault();playerData();">
                 <div class="field">
-                    <label class="label">Pseudo en jeu</label>
+                    <label class="label text-white">Pseudo en jeu</label>
                     <div class="control">
                         <input class="input" type="text" name="username" id="username" placeholder="Saisir votre pseudo"
                             required />
@@ -34,14 +34,14 @@
         </div>
         <div>
 
-            <div class="card mb-3 d-none" id="rooms-card">
-                <div class="card-header">Salons disponibles</div>
-                <ul class="list-group list-group-flush" id="rooms-list"></ul>
+            <div class="card mb-3 d-none bg-dark mt-2" id="rooms-card">
+                <div class="card-header text-white">Salons disponibles</div>
+                <ul class="list-group list-group-flush m-3 mb-0" id="rooms-list"></ul>
             </div>
 
             <div class="d-none" id="waiting-area">
-                <div class="card mb-3">
-                    <div class="card-header">En attende d'un autre joueur</div>
+                <div class="card mb-3 bg-dark">
+                    <div class="card-header text-white">En attende d'autres joueurs</div>
                     <div class="card-body mx-auto">
                         <div class="spinner-border" role="status">
                             <span class="visually-hidden">Loading...</span>
@@ -49,8 +49,8 @@
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-body text-center">
+                <div class="card bg-dark">
+                    <div class="card-body text-center text-white">
                         Partage ce lien pour inviter quelqu'un à jouer avec toi
                         <span id="link-to-share"></span>
                     </div>
@@ -60,8 +60,8 @@
                 <input class="btn btn-primary" id="restart" type="button" value="Rejouer">
             </div>
 
-            <div class="card d-none" id="game-card">
-                <div class="card-header">
+            <div class="card d-none bg-dark" id="game-card">
+                <div class="card-header text-white">
                     Skyjo
                 </div>
                 <div class="pioches mt-3 gap-3 d-flex justify-content-center">
@@ -79,10 +79,10 @@
 
         </div>
 
-        <footer class="footer">
+        <footer class="footer bg-dark box mt-2">
             <div class="content has-text-centered">
-                <p>
-                    <strong>skyjo</strong> by <a href="https://github.com/cda34-24-01/skyjo">Jeremy lmekki facundo</a>.
+                <p class="text-white">
+                    <strong class="text-white">skyjo</strong> by <a href="https://github.com/cda34-24-01/skyjo">Jeremy lmekki facundo</a>.
                     The source code is licensed
                     <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. The
                     website content is licensed
