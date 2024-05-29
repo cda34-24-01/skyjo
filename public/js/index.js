@@ -14,6 +14,11 @@ const player = {
   win: false,
 };
 
+let defausseInit = {
+  init: 0,
+  currentValue: 0,
+};
+
 
 /*   const cards = Array.from({ length: 12 }, () => ({
     image: '/images/1.png',
@@ -610,21 +615,23 @@ function getRandomCard(roomId) {
   return cardPlayer;
 }
 
-let defausseInit = 0;
 
 // Fonction pour obtenir une carte aléatoire
 function initDefausseCard(roomId) {
-  if (defausseInit == 0) {
-    defausseInit = 1;
+  if (defausseInit.init == 0) {
+    defausseInit.init = 1;
     // Copier les cartes dans un tableau temporaire
     let tmpCard = getRandomCard(roomId);
     console.log(tmpCard)
     defausse.src = tmpCard.image;
-    socket.emit("defausse", tmpCard);
+    socket.emit("updateDefausse", tmpCard);
   }
 }
 
-socket.on("defausse", (card) => {
+socket.on("updateDefausse", (card) => {
   console.log("Dans la défausse")
+  defausseInit.init = 1;
   defausse.src = card.image;
 });
+
+

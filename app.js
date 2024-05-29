@@ -80,6 +80,9 @@ io.on("connection", (socket) => {
     io.to(player.roomId).emit('choose', player);
   });
 
+  socket.on('updateDefausse', (defausseInit) => {
+    io.to(defausseInit.init).emit('updateDefausse', defausseInit);
+  });
 
   socket.on("disconnect", () => {
     console.log(`[Disconnect] ${socket.id} user disconnected`);
