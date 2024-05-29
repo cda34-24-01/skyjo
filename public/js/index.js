@@ -6,6 +6,7 @@ const player = {
   host: false,
   lastRound: false,
   playedCell: "",
+  pick: null,
   roomId: null,
   score: 0,
   socketId: "",
@@ -182,24 +183,28 @@ function playerData(roomId = null) {
  */
 
 document.addEventListener("click", function (e) {
-  player.pick = null;
   const cell = e.target.closest(".cell img"); // Or any other selector.
   const pioche = e.target.closest("#pioche"); // Or any other selector.
   const defausse = e.target.closest("#defausse"); // Or any other selector.
 
   if (pioche) {
-    console.log(getRandomCard(roomId));
+    console.log(getRandomCard(player.roomId));
     player.pick = "pioche";
     console.log("pioche");
     return;
   }
   if (defausse) {
-    player.pick = "defausse";
-    console.log("defausse");
+    if(player.pick == "pioche") {
+      console.log("pioche et defausse");
+      player.pick = null;
+    } else {
+      player.pick = "defausse";
+      console.log("defausse");
+    }
     return;
   }
   if (cell) {
-    if (player.pick == null) {
+    if (player.pick == null && player.chooseCard >= 2) {
       return;
     }
     const playedCell = cell.getAttribute("id");
@@ -219,6 +224,7 @@ document.addEventListener("click", function (e) {
     if (playedCellName !== player.username) {
       return;
     }
+
 
     if (cell.getAttribute("src") === "/images/verso.png" && player.turn) {
       if (cell.innerText === "" && player.turn) {
@@ -241,6 +247,7 @@ document.addEventListener("click", function (e) {
         }
 
         player.turn = false;
+        player.pick = null;
 
         console.log(player.score)
 
