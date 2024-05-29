@@ -80,6 +80,7 @@ io.on("connection", (socket) => {
     io.to(player.roomId).emit('choose', player);
   });
 
+
   socket.on("disconnect", () => {
     console.log(`[Disconnect] ${socket.id} user disconnected`);
     let room = null;
@@ -95,7 +96,6 @@ io.on("connection", (socket) => {
   });
  
 });
-
 
 function createRoom(player) {
   const room = { id: roomId(), players: [] };

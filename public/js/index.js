@@ -1,16 +1,16 @@
 
 const player = {
-  host: false,
-  playedCell: "",
-  roomId: null,
-  username: "",
-  socketId: "",
+  chooseCard: 0,
   color: "",
   deck: [],
-  turn: true,
-  chooseCard: 0,
-  score: 0,
+  host: false,
   lastRound: false,
+  playedCell: "",
+  roomId: null,
+  score: 0,
+  socketId: "",
+  turn: true,
+  username: "",
   win: false,
 };
 
@@ -117,6 +117,9 @@ const roomsList = document.getElementById("rooms-list");
 const turnMsg = document.getElementById("turn-message");
 const linkToShare = document.getElementById("link-to-share");
 
+const pioche = document.getElementById("pioche");
+const defausse = document.getElementById("defausse");
+
 let enemyUsername = "";
 
 socket.emit("get rooms");
@@ -151,14 +154,13 @@ socket.on("list rooms", (rooms) => {
 });
 
 function playerData(roomId = null) {
-  player.username = usernameInput.value;
-  player.roomId = roomId;
-  player.host = true;
-  player.turn = roomId === null ?? true;
-  player.socketId = socket.id;
-  player.deck = initPlayerDeck(roomId);
   player.color = getRandomColor(roomId);
-  player.score = 0;
+  player.deck = initPlayerDeck(roomId);
+  player.host = true;
+  player.roomId = roomId;
+  player.socketId = socket.id;
+  player.turn = roomId === null ?? true;
+  player.username = usernameInput.value;
 
   userCard.hidden = true;
   waitingArea.classList.remove("d-none");
@@ -167,16 +169,40 @@ function playerData(roomId = null) {
   socket.emit("playerData", player);
 }
 
+/* function initDefausse(roomId) {
+  const defausse = document.getElementById("defausse");
+  const card = getRandomCard(roomId);
+  defausse.src = card.image;
+}
+ */
 
 document.addEventListener("click", function (e) {
-
+  player.pick = null;
   const cell = e.target.closest(".cell img"); // Or any other selector.
+  const pioche = e.target.closest("#pioche"); // Or any other selector.
+  const defausse = e.target.closest("#defausse"); // Or any other selector.
+
+  if (pioche) {
+    console.log(getRandomCard(roomId));
+    player.pick = "pioche";
+    console.log("pioche");
+    return;
+  }
+  if (defausse) {
+    player.pick = "defausse";
+    console.log("defausse");
+    return;
+  }
   if (cell) {
-    const playedCellName = cell.getAttribute("data-username");
+    if (player.pick == null) {
+      return;
+    }
     const playedCell = cell.getAttribute("id");
+    const playedCellName = cell.getAttribute("data-username");
+
+    player.chooseCard++;
     if (player.chooseCard < 2) {
       if (cell.getAttribute("src") === "/images/verso.png") {
-        player.chooseCard++;
         player.turn = true;
         player.playedCell = playedCell;
         returnCard(cell, player);
@@ -184,9 +210,11 @@ document.addEventListener("click", function (e) {
       }
       return;
     }
+
     if (playedCellName !== player.username) {
       return;
     }
+
     if (cell.getAttribute("src") === "/images/verso.png" && player.turn) {
       if (cell.innerText === "" && player.turn) {
 
@@ -197,10 +225,8 @@ document.addEventListener("click", function (e) {
 
         /* player.win = calculateWin(playedCell); */
 
-
         //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
         addFilterGray(cell, player.username);
-
 
         // Vérifie si la partie est terminée
         if (checkEndGame(player)) {
@@ -208,7 +234,6 @@ document.addEventListener("click", function (e) {
           /* SetTurnMessage('alert-info', 'alert-warning', "La partie est terminée !");
           return; */
         }
-
 
         player.turn = false;
 
@@ -242,27 +267,33 @@ socket.on("start game", (players) => {
 });
 
 socket.on("choose", (enemyPlayer) => {
-  console.log("choose", enemyPlayer);
-  let playedCellId = enemyPlayer.playedCell;
-  let enemyUsername = enemyPlayer.username;
-  let imageElement = document.getElementById(`${playedCellId}`);
-
-  if (imageElement) {
-    returnCard(imageElement, enemyPlayer);
-  }
-
-  if (player.chooseCard < 2 || enemyPlayer.chooseCard < 2) {
-    SetTurnMessage("alert-info", "alert-success", "Veuillez-choisir 2 cartes, puis patientez...");
+  if (player.username === enemyPlayer.username) {
+    return;
   } else {
-    if (player.host && player.turn) {
-    //if (player.score > enemyPlayer.score) {
-      SetTurnMessage("alert-info", "alert-success", "C'est à vous de jouer");
+    /* console.log(player) */
+    console.log(enemyPlayer)
+
+    let playedCellId = enemyPlayer.playedCell;
+    let enemyUsername = enemyPlayer.username;
+    let imageElement = document.getElementById(`${playedCellId}`);
+
+    if (imageElement) {
+      returnCard(imageElement, enemyPlayer);
+    }
+
+    if (player.chooseCard < 2 || enemyPlayer.chooseCard < 2) {
+      SetTurnMessage("alert-info", "alert-success", "Veuillez-choisir 2 cartes, puis patientez...");
     } else {
-      SetTurnMessage(
-        "alert-success",
-        "alert-info",
-        `C'est à ${enemyUsername} de jouer`
-      );
+      if (player.host && player.turn) {
+        //if (player.score > enemyPlayer.score) {
+        SetTurnMessage("alert-info", "alert-success", "C'est à vous de jouer");
+      } else {
+        SetTurnMessage(
+          "alert-success",
+          "alert-info",
+          `C'est à ${enemyUsername} de jouer`
+        );
+      }
     }
   }
 });
@@ -308,18 +339,16 @@ function returnCard(cell, player) {
 }
 
 socket.on('play', (enemyPlayer) => {
+
   /* console.log("play", enemyPlayer); */
   if (enemyPlayer.socketId !== player.socketId && !enemyPlayer.turn) {
-    
+
     let playedCellId = enemyPlayer.playedCell;
     let enemyUsername = enemyPlayer.username;
     let imageElement = document.getElementById(`${playedCellId}`);
-    
-    if (enemyPlayer.chooseCard < 1) {
-      SetTurnMessage('alert-info', 'alert-success', `C'est à ${enemyUsername} de choisir 2 cartes, puis patientez...`);
-      return;
-    }
-    
+
+
+
     if (imageElement) {
       //Syncronisation des cartes
       returnCard(imageElement, enemyPlayer);
@@ -373,6 +402,7 @@ function addFilterGray(image, playername) {
     if (numero != null) {
       //Cherche dans toute la colonne si le numéro est présent dans les 3 cellules
       let number = 0;
+      let totalScoreColumn = 0;
       const column = image.getAttribute("id").split(",")[1];
 
       for (let i = 1; i <= 3; i++) {
@@ -383,6 +413,7 @@ function addFilterGray(image, playername) {
 
         if (cellNumber === numero) {
           number++;
+          totalScoreColumn += parseInt(cellNumber);
         }
       }
 
@@ -394,13 +425,13 @@ function addFilterGray(image, playername) {
         cell1.classList.add("filter-grayscale");
         cell2.classList.add("filter-grayscale");
         cell3.classList.add("filter-grayscale");
+        player.score -= totalScoreColumn;
       }
     }
   }
 }
 
 function startGame(players) {
-  console.log(players);
   restartArea.classList.add("d-none");
   waitingArea.classList.add("d-none");
   gameCard.classList.remove("d-none");
@@ -408,6 +439,8 @@ function startGame(players) {
 
   const enemyPlayer = players.find((p) => p.socketId !== player.socketId);
   enemyUsername = enemyPlayer.username;
+
+  initDefausseCard(enemyPlayer.roomId);
 
   SetTurnMessage("alert-info", "alert-success", "Veuillez-choisir 2 cartes, puis patientez...");
 
@@ -443,7 +476,7 @@ function createPlayerTable(player) {
   // Add player information to the table header (if desired)
   let containerPlayerCards = document.querySelector(".container-players-cards");
   let divPlayerCard = document.createElement("div");
-  divPlayerCard.classList.add("player-cards");
+  divPlayerCard.classList.add("player-cards", "rounded");
   let playerTableHeader = document.createElement("thead");
   let playerTableHeaderRow = document.createElement("tr");
   let playerTableHeaderCell = document.createElement("th");
@@ -521,6 +554,7 @@ const joinRoom = function () {
 
 let trashColor = []; // Initialize as an empty array 
 function getRandomColor(roomId) {
+  return "grey";
   const colors = ["red", "green", "blue", "orange", "purple", "teal", "yellow", "pink"];
 
   let tmp_colors = [...colors];
@@ -576,4 +610,21 @@ function getRandomCard(roomId) {
   return cardPlayer;
 }
 
+let defausseInit = 0;
 
+// Fonction pour obtenir une carte aléatoire
+function initDefausseCard(roomId) {
+  if (defausseInit == 0) {
+    defausseInit = 1;
+    // Copier les cartes dans un tableau temporaire
+    let tmpCard = getRandomCard(roomId);
+    console.log(tmpCard)
+    defausse.src = tmpCard.image;
+    socket.emit("defausse", tmpCard);
+  }
+}
+
+socket.on("defausse", (card) => {
+  console.log("Dans la défausse")
+  defausse.src = card.image;
+});
