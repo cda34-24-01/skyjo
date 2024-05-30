@@ -86,6 +86,11 @@ body {
   cursor: pointer;
 }
 
+.pointer {
+  cursor: pointer;
+  pointer-events: none;
+}
+
 .footer {
   height: 1rem;
 }
