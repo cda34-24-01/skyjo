@@ -202,7 +202,7 @@ document.addEventListener("click", function (e) {
   const defausse = e.target.closest("#defausse"); // Or any other selector.
 
   if (pioche) {
-    if (player.pick != null) {
+    if (player.pick != null || player.chooseCard < 2) {
       return;
     }
     if (player.turn) {
@@ -222,6 +222,9 @@ document.addEventListener("click", function (e) {
   }
 
   if (defausse) {
+    if (player.chooseCard < 2) {
+      return;
+    }
     if (player.pick != null && player.pick != "pioche") {
       return;
     }
@@ -268,7 +271,11 @@ document.addEventListener("click", function (e) {
       return;
     }
 
-    if (cell.getAttribute("src") === "/images/verso.png" && player.turn) {
+    if (
+      (cell.getAttribute("src") === "/images/verso.png" && player.turn) ||
+      (player.pick == "defausse" && player.turn) ||
+      (player.pick == "pioche" && player.turn)
+    ) {
       player.playedCell = playedCell;
       if (player.pick != null) {
         /* defausse.src = imgToFollowInfo.image; */
@@ -328,9 +335,6 @@ socket.on("choose", (enemyPlayer) => {
   if (player.username === enemyPlayer.username) {
     return;
   } else {
-    /* console.log(player) */
-    console.log(enemyPlayer);
-
     let playedCellId = enemyPlayer.playedCell;
     let enemyUsername = enemyPlayer.username;
     let imageElement = document.getElementById(`${playedCellId}`);
@@ -360,46 +364,6 @@ socket.on("choose", (enemyPlayer) => {
   }
 });
 
-/* function returnCard(cell, player) {
-  if (cell.getAttribute("id") === `Cell1,Column1,${player.username}`) {
-    cell.src = `${player.deck[0].image}`;
-    player.score += player.deck[0].value;
-  } else if (cell.getAttribute("id") === `Cell2,Column1,${player.username}`) {
-    cell.src = `${player.deck[4].image}`;
-    player.score += player.deck[4].value;
-  } else if (cell.getAttribute("id") === `Cell3,Column1,${player.username}`) {
-    cell.src = `${player.deck[8].image}`;
-    player.score += player.deck[8].value;
-  } else if (cell.getAttribute("id") === `Cell1,Column2,${player.username}`) {
-    cell.src = `${player.deck[1].image}`;
-    player.score += player.deck[1].value;
-  } else if (cell.getAttribute("id") === `Cell2,Column2,${player.username}`) {
-    cell.src = `${player.deck[5].image}`;
-    player.score += player.deck[5].value;
-  } else if (cell.getAttribute("id") === `Cell3,Column2,${player.username}`) {
-    cell.src = `${player.deck[9].image}`;
-    player.score += player.deck[9].value;
-  } else if (cell.getAttribute("id") === `Cell1,Column3,${player.username}`) {
-    cell.src = `${player.deck[2].image}`;
-    player.score += player.deck[2].value;
-  } else if (cell.getAttribute("id") === `Cell2,Column3,${player.username}`) {
-    cell.src = `${player.deck[6].image}`;
-    player.score += player.deck[6].value;
-  } else if (cell.getAttribute("id") === `Cell3,Column3,${player.username}`) {
-    cell.src = `${player.deck[10].image}`;
-    player.score += player.deck[10].value;
-  } else if (cell.getAttribute("id") === `Cell1,Column4,${player.username}`) {
-    cell.src = `${player.deck[3].image}`;
-    player.score += player.deck[3].value;
-  } else if (cell.getAttribute("id") === `Cell2,Column4,${player.username}`) {
-    cell.src = `${player.deck[7].image}`;
-    player.score += player.deck[7].value;
-  } else if (cell.getAttribute("id") === `Cell3,Column4,${player.username}`) {
-    cell.src = `${player.deck[11].image}`;
-    player.score += player.deck[11].value;
-  }
-} */
-
 function returnCard(cell, player) {
   const cellId = cell.getAttribute("id");
   const columns = ["Column1", "Column2", "Column3", "Column4"];
@@ -425,7 +389,6 @@ function returnCard(cell, player) {
 }
 
 function getSrcImageBeforeReplace(cell, player) {
-  console.log(cell);
   const cellId = cell.getAttribute("id");
   const columns = ["Column1", "Column2", "Column3", "Column4"];
   const rows = ["Cell1", "Cell2", "Cell3"];
@@ -448,8 +411,6 @@ function getSrcImageBeforeReplace(cell, player) {
 }
 
 function replaceCard(cell, player) {
-  console.log(player);
-
   let cellId;
 
   if (cell && cell instanceof HTMLElement) {
@@ -462,11 +423,7 @@ function replaceCard(cell, player) {
     cell = document.getElementById(`${cellId}`);
   }
 
-  console.log(cell);
-
-  let srcImageBeforeReplace = getSrcImageBeforeReplace(cell, player);
-  console.log(srcImageBeforeReplace);
-  defausse.src = srcImageBeforeReplace;
+  defausse.src = getSrcImageBeforeReplace(cell, player);
 
   const columns = ["Column1", "Column2", "Column3", "Column4"];
   const rows = ["Cell1", "Cell2", "Cell3"];
@@ -482,46 +439,6 @@ function replaceCard(cell, player) {
   }
   imgToFollowInfo = null;
 }
-
-/* function replaceCard(cell, player) {
-  if (cell.getAttribute("id") === `Cell1,Column1,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell2,Column1,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell3,Column1,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell1,Column2,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell2,Column2,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell3,Column2,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell1,Column3,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell2,Column3,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell3,Column3,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell1,Column4,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell2,Column4,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  } else if (cell.getAttribute("id") === `Cell3,Column4,${player.username}`) {
-    cell.src = `${imgToFollowInfo.image}`;
-    player.score += imgToFollowInfo.value;
-  }
-} */
 
 socket.on("play", (enemyPlayer) => {
   if (enemyPlayer.socketId !== player.socketId && !enemyPlayer.turn) {
