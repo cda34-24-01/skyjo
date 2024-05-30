@@ -269,39 +269,37 @@ document.addEventListener("click", function (e) {
     }
 
     if (cell.getAttribute("src") === "/images/verso.png" && player.turn) {
-      if (player.turn) {
-        player.playedCell = playedCell;
-        if (player.pick != null) {
-          /* defausse.src = imgToFollowInfo.image; */
-          imgToFollow.remove();
-          player.imageElement = cell;
-          replaceCard(cell, player);
-          followMouse = false;
-          /* returnCard(cell, player); */
-        } else {
-          //Syncronisation des cartes
-          returnCard(cell, player);
-        }
-
-        /* player.win = calculateWin(playedCell); */
-
-        //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
-        addFilterGray(cell, player.username);
-
-        // Vérifie si la partie est terminée
-        if (checkEndGame(player)) {
-          player.lastRound = true;
-          /* SetTurnMessage('alert-info', 'alert-warning', "La partie est terminée !");
-          return; */
-        }
-
-        player.turn = false;
-        player.pick = null;
-
-        console.log(player.score);
-
-        socket.emit("play", player);
+      player.playedCell = playedCell;
+      if (player.pick != null) {
+        /* defausse.src = imgToFollowInfo.image; */
+        imgToFollow.remove();
+        player.imageElement = cell;
+        replaceCard(cell, player);
+        followMouse = false;
+        /* returnCard(cell, player); */
+      } else {
+        //Syncronisation des cartes
+        returnCard(cell, player);
       }
+
+      /* player.win = calculateWin(playedCell); */
+
+      //Ajoute le filtre gris sur les cartes qui ont le même numéro dans la colonne
+      addFilterGray(cell, player.username);
+
+      // Vérifie si la partie est terminée
+      if (checkEndGame(player)) {
+        player.lastRound = true;
+        /* SetTurnMessage('alert-info', 'alert-warning', "La partie est terminée !");
+          return; */
+      }
+
+      player.turn = false;
+      player.pick = null;
+
+      console.log(player.score);
+
+      socket.emit("play", player);
     }
   }
 });
@@ -426,7 +424,8 @@ function returnCard(cell, player) {
   }
 }
 
-function getSrcImageBeforeReplace(cell) {
+function getSrcImageBeforeReplace(cell, player) {
+  console.log(cell);
   const cellId = cell.getAttribute("id");
   const columns = ["Column1", "Column2", "Column3", "Column4"];
   const rows = ["Cell1", "Cell2", "Cell3"];
@@ -465,7 +464,7 @@ function replaceCard(cell, player) {
 
   console.log(cell);
 
-  let srcImageBeforeReplace = getSrcImageBeforeReplace(cell);
+  let srcImageBeforeReplace = getSrcImageBeforeReplace(cell, player);
   console.log(srcImageBeforeReplace);
   defausse.src = srcImageBeforeReplace;
 
